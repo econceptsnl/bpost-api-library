@@ -1,13 +1,14 @@
 <?php
+
 namespace Bpost\BpostApiClient\Bpost\Order\Box;
 
-use Bpost\BpostApiClient\Bpost\Order\Box\CustomsInfo\CustomsInfo;
-use Bpost\BpostApiClient\Bpost\Order\Box\Option\Messaging;
-use Bpost\BpostApiClient\Bpost\Order\Box\Option\Option;
 use Bpost\BpostApiClient\Bpost\Order\Receiver;
+use Bpost\BpostApiClient\Bpost\Order\Box\Option\Option;
+use Bpost\BpostApiClient\Bpost\Order\Box\Option\Messaging;
 use Bpost\BpostApiClient\Bpost\ProductConfiguration\Product;
-use Bpost\BpostApiClient\Exception\BpostLogicException\BpostInvalidValueException;
 use Bpost\BpostApiClient\Exception\BpostNotImplementedException;
+use Bpost\BpostApiClient\Bpost\Order\Box\CustomsInfo\CustomsInfo;
+use Bpost\BpostApiClient\Exception\BpostLogicException\BpostInvalidValueException;
 
 /**
  * bPost International class
@@ -131,6 +132,7 @@ class International implements IBox
             Product::PRODUCT_NAME_BPACK_WORLD_EASY_RETURN,
             Product::PRODUCT_NAME_BPACK_WORLD_EXPRESS_PRO,
             Product::PRODUCT_NAME_BPACK_EUROPE_BUSINESS,
+            Product::PRODUCT_NAME_BPACK_AT_BPOST_INTERNATIONAL,
         );
     }
 
@@ -205,6 +207,61 @@ class International implements IBox
 
         if ($this->getCustomsInfo() !== null) {
             $international->appendChild(
+                $this->getCustomsInfo()->toXML($document, 'international')
+            );
+        }
+
+        return $internationalBox;
+    }
+
+    /**
+     * Return the object as an array for usage in the XML
+     *
+     * @param  \DomDocument $document
+     * @param  string       $prefix
+     * @return \DomElement
+     */
+    public function toPugoXML(\DOMDocument $document, $prefix = null, $tagName = 'internationalBox')
+    {
+        if ($tagName != "atIntlPugo") {
+            throw new \Exception("tagName is not correct :". $tagName." instead of atIntlPugo", 1);
+        }
+        if ($prefix !== null) {
+            $tagName = $prefix . ':' . $tagName;
+        }
+
+        $internationalBox = $document->createElement($tagName);
+        $international = $document->createElement('international:product', Product::PRODUCT_NAME_BPACK_AT_BPOST_INTERNATIONAL);
+        $internationalBox->appendChild($international);
+
+        $options = $this->getOptions();
+        if (!empty($options)) {
+            $optionsElement = $document->createElement('international:options');
+            foreach ($options as $option) {
+                $optionsElement->appendChild(
+                    $option->toXML($document)
+                );
+            }
+            $internationalBox->appendChild($optionsElement);
+        }
+
+        if ($this->getReceiver() !== null) {
+            $internationalBox->appendChild(
+                $this->getReceiver()->toXML($document, 'international')
+            );
+        }
+
+        if ($this->getParcelWeight() !== null) {
+            $internationalBox->appendChild(
+                $document->createElement(
+                    'international:parcelWeight',
+                    $this->getParcelWeight()
+                )
+            );
+        }
+
+        if ($this->getCustomsInfo() !== null) {
+            $internationalBox->appendChild(
                 $this->getCustomsInfo()->toXML($document, 'international')
             );
         }

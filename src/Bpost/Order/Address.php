@@ -1,4 +1,5 @@
 <?php
+
 namespace Bpost\BpostApiClient\Bpost\Order;
 
 use Bpost\BpostApiClient\Exception\BpostLogicException\BpostInvalidLengthException;
@@ -10,7 +11,7 @@ use Bpost\BpostApiClient\Exception\BpostLogicException\BpostInvalidLengthExcepti
  */
 class Address
 {
-    const TAG_NAME = 'common:address';
+    public const TAG_NAME = 'common:address';
 
     /**
      * @var string
@@ -213,9 +214,12 @@ class Address
      * @param  string       $prefix
      * @return \DOMElement
      */
-    public function toXML(\DOMDocument $document, $prefix = 'common')
+    public function toXML(\DOMDocument $document, $prefix = 'common', $international = false)
     {
         $tagName = static::TAG_NAME;
+        if ($tagName =="pugoAddress" and $international == true) {
+            $tagName="international:pugoAddress";
+        }
         $address = $document->createElement($tagName);
         $document->appendChild($address);
 
